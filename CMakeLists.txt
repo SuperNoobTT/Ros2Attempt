@@ -20,6 +20,7 @@ install(TARGETS
 install(DIRECTORY
   launch
   models
+  worlds
   DESTINATION share/${PROJECT_NAME})
 
 ament_package()

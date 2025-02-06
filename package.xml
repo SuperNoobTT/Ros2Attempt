@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>my_robot_simulation</name>
+  <version>0.0.1</version>
+  <description>A simple ROS 2 and Gazebo integration example</description>
+  <maintainer email="your.email@example.com">Your Name</maintainer>
+  <license>Apache License 2.0</license>
+
+  <!-- Build and execution dependencies -->
+  <depend>rclcpp</depend>
+  <depend>geometry_msgs</depend>
+  <depend>ros_gz_sim</depend>
+  <depend>launch</depend>
+  <depend>launch_ros</depend>
+
+  <!-- Testing dependencies -->
+  <test_depend>ament_lint_auto</test_depend>
+  <test_depend>ament_lint_common</test_depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>

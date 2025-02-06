@@ -9,11 +9,11 @@ def generate_launch_description():
     # Path to the SDF model
     sdf_model_path = PathJoinSubstitution([pkg_my_robot, 'models', 'my_robot', 'model.sdf'])
 
-    # Spawn the robot
+    # Spawn the robot using ros_gz_sim
     spawn_robot_node = Node(
-        package='gazebo_ros',
-        executable='spawn_entity.py',
-        arguments=['-entity', 'my_robot', '-file', sdf_model_path],
+        package='ros_gz_sim',
+        executable='create',
+        arguments=['-file', sdf_model_path, '-name', 'my_robot', '-allow_renaming', 'true'],
         output='screen'
     )
 

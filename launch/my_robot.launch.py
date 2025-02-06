@@ -1,38 +1,45 @@
-import os
-from launch import LaunchDescription
-from launch.actions import IncludeLaunchDescription, DeclareLaunchArgument
-from launch.substitutions import PathJoinSubstitution, LaunchConfiguration
 from launch_ros.substitutions import FindPackageShare
+from launch import LaunchDescription
+from launch.actions import DeclareLaunchArgument, SetEnvironmentVariable, IncludeLaunchDescription
+from launch.substitutions import PathJoinSubstitution, LaunchConfiguration
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 
 def generate_launch_description():
-    pkg_gazebo_ros = FindPackageShare('gazebo_ros').find('gazebo_ros')
-    pkg_my_robot = FindPackageShare('my_robot_simulation').find('my_robot_simulation')
-
-    # Path to the world file
-    world_file = PathJoinSubstitution([pkg_my_robot, 'worlds', 'empty_world.sdf'])
-
-    # Launch Gazebo
-    gazebo_launch = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(
-            os.path.join(pkg_gazebo_ros, 'launch', 'gazebo.launch.py')
-        ),
-        launch_arguments={'world': world_file}.items()
-    )
-
-    # Spawn the robot
-    spawn_robot = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(
-            os.path.join(pkg_my_robot, 'launch', 'spawn_robot.launch.py')
-        )
-    )
-
+    world_file_path = PathJoinSubstitution([FindPackageShare('my_robot_simulation'), 'worlds', 'empty_world.sdf'])
+    print(f"World file path: {world_file_path}")
     return LaunchDescription([
-        DeclareLaunchArgument(
-            'world',
-            default_value=world_file,
-            description='Path to the world file'
+        # Set Gazebo resource path (optional, if you have custom models)
+        SetEnvironmentVariable(
+            'GZ_SIM_RESOURCE_PATH',
+            PathJoinSubstitution([FindPackageShare('my_robot_simulation'), 'models'])
         ),
-        gazebo_launch,
-        spawn_robot
+
+        # Declare the world file argument
+        DeclareLaunchArgument(
+            'world_file',
+            default_value=PathJoinSubstitution([FindPackageShare('my_robot_simulation'), 'worlds', 'empty_world.sdf']),
+            description='Path to the world file to load into Gazebo'
+        ),
+
+        # Launch Gazebo using ros_gz_sim
+        IncludeLaunchDescription(
+            PythonLaunchDescriptionSource(
+                PathJoinSubstitution([
+                    FindPackageShare('ros_gz_sim'), 'launch', 'gz_sim.launch.py'
+                ])
+            ),
+            launch_arguments={
+                'gz_args': [LaunchConfiguration('world_file')],
+                'on_exit_shutdown': 'True'
+            }.items(),
+        ),
+
+        # Spawn the robot
+        IncludeLaunchDescription(
+            PythonLaunchDescriptionSource(
+                PathJoinSubstitution([
+                    FindPackageShare('my_robot_simulation'), 'launch', 'spawn_robot.launch.py'
+                ])
+            )
+        ),
     ])
