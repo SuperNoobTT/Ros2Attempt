@@ -2,9 +2,8 @@ import os
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
 from launch.actions import IncludeLaunchDescription
-from launch.substitutions import PathJoinSubstitution, LaunchConfiguration
+from launch.substitutions import PathJoinSubstitution
 from launch.launch_description_sources import PythonLaunchDescriptionSource
-from ros_gz_bridge.actions import RosGzBridge
 from launch_ros.actions import Node
 
 def generate_launch_description():
@@ -28,7 +27,7 @@ def generate_launch_description():
         package='joint_state_publisher_gui',
         executable='joint_state_publisher_gui',
         name='joint_state_publisher_gui',
-        arguments=[sdf_file],
+        arguments=[robot_desc],
         output=['screen']
     )
 
@@ -59,15 +58,24 @@ def generate_launch_description():
             output='screen'
         )
 
-    #TODO Update this
-    bridge = RosGzBridge(
-        bridge_name=LaunchConfiguration("bridge"),
-        config_file=LaunchConfiguration("config_file")
+    # Bridge
+    bridge = Node(
+        package='ros_gz_bridge',
+        executable='parameter_bridge',
+        arguments=['/model/vehicle_blue/cmd_vel@geometry_msgs/msg/Twist@gz.msgs.Twist',
+                   '/model/vehicle_blue/odometry@nav_msgs/msg/Odometry@gz.msgs.Odometry',
+                   '/model/vehicle_green/cmd_vel@geometry_msgs/msg/Twist@gz.msgs.Twist',
+                   '/model/vehicle_green/odometry@nav_msgs/msg/Odometry@gz.msgs.Odometry'],
+        parameters=[{'qos_overrides./model/vehicle_blue.subscriber.reliability': 'reliable',
+                     'qos_overrides./model/vehicle_green.subscriber.reliability': 'reliable'}],
+        output='screen'
     )
 
     return LaunchDescription([
         # Include Gazebo Sim launcher
         gz_sim,
+
+        bridge,
 
         #Publish joint state of robot
         joint_state_publisher_gui,
